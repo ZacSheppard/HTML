@@ -11,13 +11,30 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 250px;
+            width: 60px; /* Initial width reduced by half */
             background-color: #f8f9fa;
             padding-top: 20px;
+            text-align: center; /* Center the text */
+            transition: width 0.3s; /* Smooth transition */
+        }
+        .sidebar:hover {
+            width: 250px; /* Expanded width on hover */
         }
         .content {
-            margin-left: 250px;
+            margin-left: 60px; /* Initial margin reduced by half */
             padding: 20px;
+            transition: margin-left 0.3s; /* Smooth transition */
+        }
+        .sidebar:hover ~ .content {
+            margin-left: 250px; /* Adjusted margin when sidebar expands */
+        }
+        .sidebar img {
+            width: 50px; /* Initial image width reduced by half */
+            height: auto;
+            transition: width 0.3s; /* Smooth transition */
+        }
+        .sidebar:hover img {
+            width: 100px; /* Expanded image width on hover */
         }
     </style>
 </head>
@@ -30,10 +47,10 @@
         <nav class="navbar navbar-light bg-light">
             <span class="navbar-brand mb-0 h1">Dashboard</span>
             <span class="navbar-text">
-                Welcome, User
+                Hello, {{ username }}
             </span>
         </nav>
-        <h1>Dashboard Content</h1>
+        <h1>Your Tasks</h1>
         <!-- Add more dashboard content here -->
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

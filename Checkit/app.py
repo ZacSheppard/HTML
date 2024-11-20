@@ -24,6 +24,7 @@ def signin():
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
+            session['username'] = user.username
             flash('Logged in successfully!', 'success')
             return redirect(url_for('dashboard'))
         else:
@@ -48,7 +49,8 @@ def dashboard():
     if 'user_id' not in session:
         flash('Please log in to access the dashboard.', 'danger')
         return redirect(url_for('signin'))
-    return render_template('dashboard.html')
+    username = session.get('username')
+    return render_template('dashboard.html', username=username)
 
 if __name__ == '__main__':
     with app.app_context():
