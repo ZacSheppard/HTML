@@ -12,6 +12,19 @@ class User(db.Model):
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
 
+class List(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    tasks = db.relationship('Task', backref='list', lazy=True)
+
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.String(300), nullable=True)
+    completed = db.Column(db.Boolean, default=False)
+    list_id = db.Column(db.Integer, db.ForeignKey('list.id'), nullable=False)
+
 @app.route('/')
 def startpage():
     return render_template('startpage.html')
@@ -25,8 +38,11 @@ def signin():
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
             session['username'] = user.username
-            flash('Logged in successfully!', 'success')
-            return redirect(url_for('dashboard'))
+            last_list_id = session.get('last_list_id')
+            if last_list_id:
+                return redirect(url_for('view_list', list_id=last_list_id))
+            else:
+                return redirect(url_for('dashboard'))
         else:
             flash('Login failed. Check your username and/or password', 'danger')
     return render_template('signin.html')
@@ -49,8 +65,69 @@ def dashboard():
     if 'user_id' not in session:
         flash('Please log in to access the dashboard.', 'danger')
         return redirect(url_for('signin'))
-    username = session.get('username')
-    return render_template('dashboard.html', username=username)
+    user_id = session.get('user_id')
+    lists = List.query.filter_by(user_id=user_id).all()
+    return render_template('dashboard.html', username=session.get('username'), lists=lists)
+
+@app.route('/list/<int:list_id>')
+def view_list(list_id):
+    if 'user_id' not in session:
+        flash('Please log in to access the list.', 'danger')
+        return redirect(url_for('signin'))
+    session['last_list_id'] = list_id
+    list_ = List.query.get_or_404(list_id)
+    user_id = session.get('user_id')
+    lists = List.query.filter_by(user_id=user_id).all()
+    return render_template('list.html', list=list_, lists=lists, username=session.get('username'))
+
+@app.route('/add_list', methods=['POST'])
+def add_list():
+    if 'user_id' not in session:
+        flash('Please log in to add a list.', 'danger')
+        return redirect(url_for('signin'))
+    list_name = request.form.get('list_name')
+    new_list = List(name=list_name, user_id=session['user_id'])
+    db.session.add(new_list)
+    db.session.commit()
+    session['last_list_id'] = new_list.id
+    flash('List added successfully!', 'success')
+    return redirect(url_for('view_list', list_id=new_list.id))
+
+@app.route('/add_task/<int:list_id>', methods=['POST'])
+def add_task(list_id):
+    if 'user_id' not in session:
+        flash('Please log in to add a task.', 'danger')
+        return redirect(url_for('signin'))
+    task_name = request.form.get('task_name')
+    task_description = request.form.get('task_description')
+    new_task = Task(name=task_name, description=task_description, list_id=list_id)
+    db.session.add(new_task)
+    db.session.commit()
+    flash('Task added successfully!', 'success')
+    return redirect(url_for('view_list', list_id=list_id))
+
+@app.route('/delete_task/<int:task_id>', methods=['POST'])
+def delete_task(task_id):
+    if 'user_id' not in session:
+        flash('Please log in to delete a task.', 'danger')
+        return redirect(url_for('signin'))
+    task = Task.query.get(task_id)
+    list_id = task.list_id
+    db.session.delete(task)
+    db.session.commit()
+    flash('Task deleted successfully!', 'success')
+    return redirect(url_for('view_list', list_id=list_id))
+
+@app.route('/toggle_task/<int:task_id>', methods=['POST'])
+def toggle_task(task_id):
+    if 'user_id' not in session:
+        flash('Please log in to update a task.', 'danger')
+        return redirect(url_for('signin'))
+    task = Task.query.get(task_id)
+    task.completed = not task.completed
+    db.session.commit()
+    flash('Task updated successfully!', 'success')
+    return redirect(url_for('view_list', list_id=task.list_id))
 
 if __name__ == '__main__':
     with app.app_context():

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>{{ list.name }}</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .sidebar {
@@ -77,13 +77,35 @@
     </div>
     <div class="content">
         <nav class="navbar navbar-light bg-light">
-            <span class="navbar-brand mb-0 h1">Dashboard</span>
+            <span class="navbar-brand mb-0 h1">{{ list.name }}</span>
             <span class="navbar-text">
                 Hello, {{ username }}
             </span>
         </nav>
-        <h1>Welcome to your dashboard</h1>
-        <p>Select a list from the sidebar or create a new one.</p>
+        <form action="{{ url_for('add_task', list_id=list.id) }}" method="post">
+            <input type="text" name="task_name" placeholder="New Task Name" required>
+            <input type="text" name="task_description" placeholder="Task Description">
+            <button type="submit" class="btn btn-primary">Add Task</button>
+        </form>
+        <ul class="list-group mt-3">
+            {% for task in list.tasks %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ task.name }}</strong> - {{ task.description }}
+                    </div>
+                    <div>
+                        <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-sm {{ 'btn-success' if task.completed else 'btn-secondary' }}">
+                                {{ 'Completed' if task.completed else 'Incomplete' }}
+                            </button>
+                        </form>
+                        <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
     </div>
 
     <!-- Add List Modal -->
