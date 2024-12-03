@@ -162,6 +162,18 @@ def delete_list(list_id):
     flash('List deleted successfully!', 'success')
     return redirect(url_for('dashboard'))
 
+@app.route('/edit_task/<int:task_id>', methods=['POST'])
+def edit_task(task_id):
+    if 'user_id' not in session:
+        flash('Please log in to edit a task.', 'danger')
+        return redirect(url_for('signin'))
+    task = Task.query.get(task_id)
+    task.name = request.form.get('task_name')
+    task.description = request.form.get('task_description')
+    db.session.commit()
+    flash('Task updated successfully!', 'success')
+    return redirect(url_for('view_list', list_id=task.list_id))
+
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
