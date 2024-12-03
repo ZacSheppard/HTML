@@ -5,14 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to CheckIt</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar-custom {
+            background-color: var(--background-color, #f8f9fa);
+        }
+        .navbar-brand img {
+            width: 30px;
+            height: auto;
+            margin-right: 10px;
+        }
+        .center-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .center-content img {
+            width: 300px; /* Increased width */
+            height: auto;
+            margin: 0 70px; /* Increased margin */
+        }
+        .center-content .logo {
+            width: 170px; /* Smaller logo width */
+            margin: 20px 0; /* Margin for spacing */
+        }
+    </style>
 </head>
 <body>
+    <nav class="navbar navbar-custom">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{{ url_for('static', filename='images/checklistlogo.png') }}" alt="CheckIt Logo">
+                <span>CheckIt</span>
+            </a>
+        </div>
+    </nav>
     <div class="container text-center mt-5">
         <h1>Welcome to CheckIt</h1>
-        <img src="{{ url_for('static', filename='images/checklistlogo.png') }}" alt="CheckIt Logo" class="img-fluid" style="width: 100px; height: 130px;">
-        <div class="mt-4">
-            <a href="{{ url_for('signin') }}" class="btn btn-primary mr-2">Sign In</a>
-            <a href="{{ url_for('signup') }}" class="btn btn-secondary">Sign Up</a>
+        <div class="center-content">
+            <img src="{{ url_for('static', filename='images/image01.png') }}" alt="Image 1">
+            <div>
+                <img src="{{ url_for('static', filename='images/checklistlogo.png') }}" alt="CheckIt Logo" class="logo img-fluid mb-4">
+                <div>
+                    <a href="{{ url_for('signin') }}" class="btn btn-primary mr-2">Sign In</a>
+                    <a href="{{ url_for('signup') }}" class="btn btn-secondary">Sign Up</a>
+                </div>
+            </div>
+            <img src="{{ url_for('static', filename='images/image2.png') }}" alt="Image 2">
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

@@ -6,17 +6,61 @@
     <title>Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #656565;
+            --background-color: #ffffff;
+            --text-color: #212529;
+            --task-background-color: #ffffff;
+        }
+        .dark-mode {
+            --primary-color: #343a40;
+            --secondary-color: #6c757d;
+            --background-color: #555555;
+            --text-color: #f8f9fa;
+            --task-background-color: #343a40;
+        }
+        .pink-mode {
+            --primary-color: #ff69b4;
+            --secondary-color: #79366c;
+            --background-color: #ff69b4;
+            --text-color: #ffffff;
+            --task-background-color: #ff69b4;
+        }
+        .green-mode {
+            --primary-color: #28a745;
+            --secondary-color: #ffffff;
+            --background-color: #006400;
+            --text-color: #ffffff;
+            --task-background-color: #28a745;
+        }
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        .modal-content {
+            background-color: var(--task-background-color);
+        }
         .sidebar {
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
             width: 60px; /* Initial width */
-            background-color: #f8f9fa;
-            padding-top: 20px;
+            background-color: var(--background-color);
             text-align: center; /* Center the text */
             transition: width 0.3s; /* Smooth transition */
             overflow-y: auto; /* Enable vertical scrolling */
+            display: flex;
+            flex-direction: column;
         }
         .sidebar:hover {
             width: 250px; /* Expanded width on hover */
@@ -39,6 +83,10 @@
         }
         .sidebar .list-group-item {
             text-align: left; /* Align text to the left */
+            background-color: var(--task-background-color);
+        }
+        .list-group-item {
+            background-color: var(--task-background-color);
         }
         .sidebar .list-group-item img {
             width: 20px; /* Small version of the list logo */
@@ -58,18 +106,27 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            background-color: #f8f9fa;
+            background-color: var(--background-color);
         }
         .sidebar .fixed-bottom {
             position: sticky;
             bottom: 0;
             z-index: 1000;
-            background-color: #f8f9fa;
+            background-color: var(--background-color);
         }
         .sidebar .settings {
             display: flex;
             align-items: center;
             justify-content: center;
+            position: fixed;
+            bottom: 0;
+            width: 60px; /* Initial width */
+            background-color: var(--background-color);
+            transition: width 0.3s; /* Smooth transition */
+            cursor: pointer;
+        }
+        .sidebar:hover .settings {
+            width: 250px; /* Expanded width on hover */
         }
         .sidebar .settings img {
             width: 30px; /* Initial image width */
@@ -86,11 +143,24 @@
         .sidebar:hover .settings span {
             display: inline; /* Show text when sidebar is expanded */
         }
-        .sidebar .settings .dropdown-menu {
-            display: none;
+        .task-completed {
+            text-decoration: line-through;
         }
-        .sidebar:hover .settings .dropdown-menu {
-            display: block;
+        .task-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .task-toggle {
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .task-toggle.open {
+            transform: rotate(90deg);
+        }
+        .larger-checkbox {
+            width: 20px;
+            height: 20px;
         }
     </style>
 </head>
@@ -112,19 +182,12 @@
                         <img src="{{ url_for('static', filename='images/checklistlogo.png') }}" alt="List Logo">
                         <span>{{ list.name }}</span>
                     </a>
-                    <form action="{{ url_for('delete_list', list_id=list.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this list?');">
-                        <button type="submit" class="btn btn-sm btn-secondary">Delete</button>
-                    </form>
                 </li>
             {% endfor %}
         </ul>
-        <div class="fixed-bottom settings">
+        <div class="settings" data-toggle="modal" data-target="#settingsModal">
             <img src="{{ url_for('static', filename='images/settingslogo.png') }}" alt="Settings Logo">
             <span>Settings</span>
-            <div class="dropdown-menu">
-                <a class="dropdown-item" href="{{ url_for('logout') }}">Log Out</a>
-                <a class="dropdown-item" href="#">Customize Interface</a>
-            </div>
         </div>
     </div>
     <div class="content">
@@ -134,8 +197,8 @@
                 Hello, {{ username }}
             </span>
         </nav>
-        <h1>Welcome to your dashboard</h1>
-        <p>Select a list from the sidebar or create a new one.</p>
+        <h1>Welcome To CheckIt</h1>
+        <p>Create A List To Get Started.</p>
     </div>
 
     <!-- Add List Modal -->
@@ -164,8 +227,49 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="settingsModalLabel">Settings</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <a class="btn btn-primary btn-block" href="{{ url_for('logout') }}">Log Out</a>
+                    <button class="btn btn-secondary btn-block" onclick="changeTheme('default')">Default</button>
+                    <button class="btn btn-secondary btn-block" onclick="changeTheme('dark')">Dark Mode</button>
+                    <button class="btn btn-secondary btn-block" onclick="changeTheme('pink')">Pink</button>
+                    <button class="btn btn-secondary btn-block" onclick="changeTheme('green')">Green</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function changeTheme(theme) {
+            document.body.classList.remove('dark-mode', 'pink-mode', 'green-mode');
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+            } else if (theme === 'pink') {
+                document.body.classList.add('pink-mode');
+            } else if (theme === 'green') {
+                document.body.classList.add('green-mode');
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                changeTheme(savedTheme);
+            }
+        });
+    </script>
 </body>
 </html>
