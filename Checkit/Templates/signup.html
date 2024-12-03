@@ -3,33 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Sign Up - Task Management Application</title>
+    <!-- Bootstrap CSS for styling -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container mt-5">
-        <h2 class="text-center">Sign Up</h2>
+    <!-- Main container for the sign-up page content -->
+    <div class="container">
+        <!-- Flash messages for displaying success or error messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="alert alert-danger">
+                <div class="alert alert-dismissible fade show" role="alert">
                     {% for category, message in messages %}
-                        {{ message }}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
                     {% endfor %}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
             {% endif %}
         {% endwith %}
+        <!-- Sign-up form -->
         <form method="post" action="{{ url_for('signup') }}">
+            <!-- Username input field -->
             <div class="form-group">
                 <label for="username">Username</label>
+                <!-- Input field for the username -->
                 <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
             </div>
+            <!-- Password input field -->
             <div class="form-group">
                 <label for="password">Password</label>
+                <!-- Input field for the password -->
                 <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
             </div>
+            <!-- Submit button -->
             <button type="submit" class="btn btn-secondary btn-block">Sign Up</button>
         </form>
     </div>
+    <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

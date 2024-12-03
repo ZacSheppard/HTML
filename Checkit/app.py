@@ -2,38 +2,45 @@ from flask import Flask, render_template, redirect, url_for, request, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# Initialize the Flask application
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-db = SQLAlchemy(app)
+app.config['SECRET_KEY'] = 'your_secret_key'  # Secret key for session management
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # Database URI
+db = SQLAlchemy(app)  # Initialize SQLAlchemy with the Flask app
 
+# Define the User model
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)  # Primary key
+    username = db.Column(db.String(150), unique=True, nullable=False)  # Username field
+    password = db.Column(db.String(150), nullable=False)  # Password field
 
+# Define the List model
 class List(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(150), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    tasks = db.relationship('Task', backref='list', lazy=True)
+    id = db.Column(db.Integer, primary_key=True)  # Primary key
+    name = db.Column(db.String(150), nullable=False)  # List name field
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Foreign key to User
+    tasks = db.relationship('Task', backref='list', lazy=True)  # Relationship to Task
 
+# Define the Task model
 class Task(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(150), nullable=False)
-    description = db.Column(db.String(300), nullable=True)
-    completed = db.Column(db.Boolean, default=False)
-    list_id = db.Column(db.Integer, db.ForeignKey('list.id'), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)  # Primary key
+    name = db.Column(db.String(150), nullable=False)  # Task name field
+    description = db.Column(db.String(300), nullable=True)  # Task description field
+    completed = db.Column(db.Boolean, default=False)  # Task completion status
+    list_id = db.Column(db.Integer, db.ForeignKey('list.id'), nullable=False)  # Foreign key to List
 
+# Define the LastList model to keep track of the last accessed list
 class LastList(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    list_id = db.Column(db.Integer, db.ForeignKey('list.id'), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)  # Primary key
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Foreign key to User
+    list_id = db.Column(db.Integer, db.ForeignKey('list.id'), nullable=False)  # Foreign key to List
 
+# Route for the start page
 @app.route('/')
 def startpage():
     return render_template('startpage.html')
 
+# Route for signing in
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
     if request.method == 'POST':
@@ -52,6 +59,7 @@ def signin():
             flash('Login failed. Check your username and/or password', 'danger')
     return render_template('signin.html')
 
+# Route for signing up
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -69,6 +77,7 @@ def signup():
         return redirect(url_for('signin'))
     return render_template('signup.html')
 
+# Route for the dashboard
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
@@ -78,6 +87,7 @@ def dashboard():
     lists = List.query.filter_by(user_id=user_id).all()
     return render_template('dashboard.html', username=session.get('username'), lists=lists)
 
+# Route for viewing a specific list
 @app.route('/list/<int:list_id>')
 def view_list(list_id):
     if 'user_id' not in session:
@@ -95,6 +105,7 @@ def view_list(list_id):
     lists = List.query.filter_by(user_id=user_id).all()
     return render_template('list.html', list=list_, lists=lists, username=session.get('username'))
 
+# Route for adding a new list
 @app.route('/add_list', methods=['POST'])
 def add_list():
     if 'user_id' not in session:
@@ -115,6 +126,7 @@ def add_list():
     flash('List added successfully!', 'success')
     return redirect(url_for('view_list', list_id=new_list.id))
 
+# Route for adding a new task to a list
 @app.route('/add_task/<int:list_id>', methods=['POST'])
 def add_task(list_id):
     if 'user_id' not in session:
@@ -128,6 +140,7 @@ def add_task(list_id):
     flash('Task added successfully!', 'success')
     return redirect(url_for('view_list', list_id=list_id))
 
+# Route for deleting a task
 @app.route('/delete_task/<int:task_id>', methods=['POST'])
 def delete_task(task_id):
     if 'user_id' not in session:
@@ -140,6 +153,7 @@ def delete_task(task_id):
     flash('Task deleted successfully!', 'success')
     return redirect(url_for('view_list', list_id=list_id))
 
+# Route for toggling the completion status of a task
 @app.route('/toggle_task/<int:task_id>', methods=['POST'])
 def toggle_task(task_id):
     if 'user_id' not in session:
@@ -151,6 +165,7 @@ def toggle_task(task_id):
     flash('Task updated successfully!', 'success')
     return redirect(url_for('view_list', list_id=task.list_id))
 
+# Route for deleting a list
 @app.route('/delete_list/<int:list_id>', methods=['POST'])
 def delete_list(list_id):
     if 'user_id' not in session:
@@ -162,6 +177,7 @@ def delete_list(list_id):
     flash('List deleted successfully!', 'success')
     return redirect(url_for('dashboard'))
 
+# Route for editing a task
 @app.route('/edit_task/<int:task_id>', methods=['POST'])
 def edit_task(task_id):
     if 'user_id' not in session:
@@ -174,6 +190,7 @@ def edit_task(task_id):
     flash('Task updated successfully!', 'success')
     return redirect(url_for('view_list', list_id=task.list_id))
 
+# Route for logging out
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
@@ -181,8 +198,10 @@ def logout():
     flash('You have been logged out.', 'success')
     return redirect(url_for('startpage'))
 
+# Main entry point of the application
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        db.create_all()  # Create database tables if they don't exist
         print("Database tables created")
-    app.run(debug=True)
+    app.run(debug=True)  # Run the Flask application in debug mode
+    

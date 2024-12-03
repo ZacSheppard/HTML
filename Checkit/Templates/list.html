@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ list.name }}</title>
+    <!-- Bootstrap CSS for styling -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
@@ -200,6 +201,7 @@
         <form action="{{ url_for('add_task', list_id=list.id) }}" method="post">
             <input type="text" name="task_name" placeholder="New Task Name" required>
             <input type="text" name="task_description" placeholder="Task Description">
+            <input type="date" name="task_due_date" placeholder="Due Date">
             <button type="submit" class="btn btn-primary">Add Task</button>
         </form>
         <ul class="list-group mt-3">
@@ -222,6 +224,8 @@
                     </div>
                     <div class="task-details">
                         {{ task.description if task.description else '🦗' }}
+                        <br>
+                        <strong>Due Date:</strong> {{ task.due_date if task.due_date else 'No due date' }}
                     </div>
                 </li>
             {% endfor %}
@@ -248,6 +252,8 @@
                         </div>
                         <div class="task-details">
                             {{ task.description if task.description else '🦗' }}
+                            <br>
+                            <strong>Due Date:</strong> {{ task.due_date if task.due_date else 'No due date' }}
                         </div>
                     </li>
                 {% endfor %}
@@ -305,6 +311,10 @@
                             <label for="task_description{{ task.id }}">Task Description</label>
                             <input type="text" class="form-control" id="task_description{{ task.id }}" name="task_description" value="{{ task.description }}">
                         </div>
+                        <div class="form-group">
+                            <label for="task_due_date{{ task.id }}">Due Date</label>
+                            <input type="date" class="form-control" id="task_due_date{{ task.id }}" name="task_due_date" value="{{ task.due_date }}">
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -341,15 +351,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        function toggleTaskDetails(element) {
-            const details = element.parentElement.parentElement.nextElementSibling;
-            const isOpen = details.style.maxHeight && details.style.maxHeight !== '0px';
-            details.style.maxHeight = isOpen ? '0px' : details.scrollHeight + 'px';
-            element.classList.toggle('open', !isOpen);
-        }
-
+        // Function to change the theme of the application
         function changeTheme(theme) {
+            // Remove existing theme classes
             document.body.classList.remove('dark-mode', 'pink-mode', 'green-mode');
+            // Add the selected theme class
             if (theme === 'dark') {
                 document.body.classList.add('dark-mode');
             } else if (theme === 'pink') {
@@ -357,9 +363,11 @@
             } else if (theme === 'green') {
                 document.body.classList.add('green-mode');
             }
+            // Save the selected theme to local storage
             localStorage.setItem('theme', theme);
         }
 
+        // Event listener to apply the saved theme when the document is loaded
         document.addEventListener('DOMContentLoaded', (event) => {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme) {

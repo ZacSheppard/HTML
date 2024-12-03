@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ list.name }}</title>
+    <title>Dashboard</title>
+    <!-- Bootstrap CSS for styling -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Define color variables for different themes */
         :root {
             --primary-color: #007bff;
             --secondary-color: #656565;
@@ -34,6 +36,7 @@
             --text-color: #ffffff;
             --task-background-color: #245e31;
         }
+        /* Apply theme colors to body and buttons */
         body {
             background-color: var(--background-color);
             color: var(--text-color);
@@ -49,6 +52,7 @@
         .modal-content {
             background-color: var(--task-background-color);
         }
+        /* Sidebar styling */
         .sidebar {
             height: 100vh;
             position: fixed;
@@ -192,75 +196,13 @@
     </div>
     <div class="content">
         <nav class="navbar navbar-light bg-light">
-            <span class="navbar-brand mb-0 h1">{{ list.name }}</span>
+            <span class="navbar-brand mb-0 h1">Dashboard</span>
             <span class="navbar-text">
                 Hello, {{ username }}
             </span>
         </nav>
-        <form action="{{ url_for('add_task', list_id=list.id) }}" method="post">
-            <input type="text" name="task_name" placeholder="New Task Name" required>
-            <input type="text" name="task_description" placeholder="Task Description">
-            <input type="date" name="task_due_date" placeholder="Due Date">
-            <button type="submit" class="btn btn-primary">Add Task</button>
-        </form>
-        <ul class="list-group mt-3">
-            {% for task in list.tasks if not task.completed %}
-                <li class="list-group-item">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center {% if task.completed %}task-completed{% endif %}">
-                            <span class="task-toggle" onclick="toggleTaskDetails(this)">&#9654;</span>
-                            <strong class="ml-2">{{ task.name }}</strong>
-                        </div>
-                        <div>
-                            <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="post" style="display:inline;">
-                                <input type="checkbox" name="completed" class="larger-checkbox" onchange="this.form.submit()" {% if task.completed %}checked{% endif %}>
-                            </form>
-                            <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this task?');">
-                                <button type="submit" class="btn btn-sm btn-secondary">Delete</button>
-                            </form>
-                            <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#editTaskModal{{ task.id }}">Edit</button>
-                        </div>
-                    </div>
-                    <div class="task-details">
-                        {{ task.description if task.description else '🦗' }}
-                        <br>
-                        <strong>Due Date:</strong> {{ task.due_date if task.due_date else 'No due date' }}
-                    </div>
-                </li>
-            {% endfor %}
-        </ul>
-        <div class="completed-tasks">
-            <h5>Completed Tasks</h5>
-            <ul class="list-group mt-3">
-                {% for task in list.tasks if task.completed %}
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center task-completed">
-                                <span class="task-toggle" onclick="toggleTaskDetails(this)">&#9660;</span>
-                                <strong class="ml-2">{{ task.name }}</strong>
-                            </div>
-                            <div>
-                                <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="post" style="display:inline;">
-                                    <input type="checkbox" name="completed" class="larger-checkbox" onchange="this.form.submit()" {% if task.completed %}checked{% endif %}>
-                                </form>
-                                <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this task?');">
-                                    <button type="submit" class="btn btn-sm btn-secondary">Delete</button>
-                                </form>
-                                <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#editTaskModal{{ task.id }}">Edit</button>
-                            </div>
-                        </div>
-                        <div class="task-details">
-                            {{ task.description if task.description else '🦗' }}
-                            <br>
-                            <strong>Due Date:</strong> {{ task.due_date if task.due_date else 'No due date' }}
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-        <form action="{{ url_for('delete_list', list_id=list.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this list?');">
-            <button type="submit" class="btn btn-secondary mt-3">Delete List</button>
-        </form>
+        <h1>Welcome To CheckIt</h1>
+        <p>Create A List To Get Started.</p>
     </div>
 
     <!-- Add List Modal -->
@@ -289,42 +231,6 @@
         </div>
     </div>
 
-    <!-- Edit Task Modal -->
-    {% for task in list.tasks %}
-    <div class="modal fade" id="editTaskModal{{ task.id }}" tabindex="-1" role="dialog" aria-labelledby="editTaskModalLabel{{ task.id }}" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editTaskModalLabel{{ task.id }}">Edit Task</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form action="{{ url_for('edit_task', task_id=task.id) }}" method="post">
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="task_name{{ task.id }}">Task Name</label>
-                            <input type="text" class="form-control" id="task_name{{ task.id }}" name="task_name" value="{{ task.name }}" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="task_description{{ task.id }}">Task Description</label>
-                            <input type="text" class="form-control" id="task_description{{ task.id }}" name="task_description" value="{{ task.description }}">
-                        </div>
-                        <div class="form-group">
-                            <label for="task_due_date{{ task.id }}">Due Date</label>
-                            <input type="date" class="form-control" id="task_due_date{{ task.id }}" name="task_due_date" value="{{ task.due_date }}">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-
     <!-- Settings Modal -->
     <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -346,19 +252,16 @@
         </div>
     </div>
 
+    <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        function toggleTaskDetails(element) {
-            const details = element.parentElement.parentElement.nextElementSibling;
-            const isOpen = details.style.maxHeight && details.style.maxHeight !== '0px';
-            details.style.maxHeight = isOpen ? '0px' : details.scrollHeight + 'px';
-            element.classList.toggle('open', !isOpen);
-        }
-
+        // Function to change the theme of the application
         function changeTheme(theme) {
+            // Remove existing theme classes
             document.body.classList.remove('dark-mode', 'pink-mode', 'green-mode');
+            // Add the selected theme class
             if (theme === 'dark') {
                 document.body.classList.add('dark-mode');
             } else if (theme === 'pink') {
@@ -366,9 +269,11 @@
             } else if (theme === 'green') {
                 document.body.classList.add('green-mode');
             }
+            // Save the selected theme to local storage
             localStorage.setItem('theme', theme);
         }
 
+        // Event listener to apply the saved theme when the document is loaded
         document.addEventListener('DOMContentLoaded', (event) => {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme) {
@@ -376,11 +281,5 @@
             }
         });
     </script>
-    <style>
-        .larger-checkbox {
-            width: 20px;
-            height: 20px;
-        }
-    </style>
 </body>
 </html>
