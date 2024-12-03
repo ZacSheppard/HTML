@@ -25,6 +25,11 @@ class Task(db.Model):
     completed = db.Column(db.Boolean, default=False)
     list_id = db.Column(db.Integer, db.ForeignKey('list.id'), nullable=False)
 
+class LastList(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    list_id = db.Column(db.Integer, db.ForeignKey('list.id'), nullable=False)
+
 @app.route('/')
 def startpage():
     return render_template('startpage.html')
@@ -38,9 +43,9 @@ def signin():
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
             session['username'] = user.username
-            last_list_id = session.get('last_list_id')
-            if last_list_id:
-                return redirect(url_for('view_list', list_id=last_list_id))
+            last_list = LastList.query.filter_by(user_id=user.id).first()
+            if last_list:
+                return redirect(url_for('view_list', list_id=last_list.list_id))
             else:
                 return redirect(url_for('dashboard'))
         else:
@@ -74,9 +79,15 @@ def view_list(list_id):
     if 'user_id' not in session:
         flash('Please log in to access the list.', 'danger')
         return redirect(url_for('signin'))
-    session['last_list_id'] = list_id
+    user_id = session['user_id']
+    last_list = LastList.query.filter_by(user_id=user_id).first()
+    if last_list:
+        last_list.list_id = list_id
+    else:
+        new_last_list = LastList(user_id=user_id, list_id=list_id)
+        db.session.add(new_last_list)
+    db.session.commit()
     list_ = List.query.get_or_404(list_id)
-    user_id = session.get('user_id')
     lists = List.query.filter_by(user_id=user_id).all()
     return render_template('list.html', list=list_, lists=lists, username=session.get('username'))
 
@@ -89,7 +100,14 @@ def add_list():
     new_list = List(name=list_name, user_id=session['user_id'])
     db.session.add(new_list)
     db.session.commit()
-    session['last_list_id'] = new_list.id
+    user_id = session['user_id']
+    last_list = LastList.query.filter_by(user_id=user_id).first()
+    if last_list:
+        last_list.list_id = new_list.id
+    else:
+        new_last_list = LastList(user_id=user_id, list_id=new_list.id)
+        db.session.add(new_last_list)
+    db.session.commit()
     flash('List added successfully!', 'success')
     return redirect(url_for('view_list', list_id=new_list.id))
 
@@ -128,6 +146,24 @@ def toggle_task(task_id):
     db.session.commit()
     flash('Task updated successfully!', 'success')
     return redirect(url_for('view_list', list_id=task.list_id))
+
+@app.route('/delete_list/<int:list_id>', methods=['POST'])
+def delete_list(list_id):
+    if 'user_id' not in session:
+        flash('Please log in to delete a list.', 'danger')
+        return redirect(url_for('signin'))
+    list_ = List.query.get(list_id)
+    db.session.delete(list_)
+    db.session.commit()
+    flash('List deleted successfully!', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    session.pop('username', None)
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('startpage'))
 
 if __name__ == '__main__':
     with app.app_context():

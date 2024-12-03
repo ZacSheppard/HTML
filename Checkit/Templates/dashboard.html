@@ -16,6 +16,7 @@
             padding-top: 20px;
             text-align: center; /* Center the text */
             transition: width 0.3s; /* Smooth transition */
+            overflow-y: auto; /* Enable vertical scrolling */
         }
         .sidebar:hover {
             width: 250px; /* Expanded width on hover */
@@ -53,27 +54,78 @@
         .sidebar:hover .list-group-item span {
             display: inline; /* Show text when sidebar is expanded */
         }
+        .sidebar .fixed-top {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: #f8f9fa;
+        }
+        .sidebar .fixed-bottom {
+            position: sticky;
+            bottom: 0;
+            z-index: 1000;
+            background-color: #f8f9fa;
+        }
+        .sidebar .settings {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar .settings img {
+            width: 30px; /* Initial image width */
+            height: auto;
+            transition: width 0.3s; /* Smooth transition */
+        }
+        .sidebar:hover .settings img {
+            width: 50px; /* Expanded image width on hover */
+        }
+        .sidebar .settings span {
+            display: none; /* Hide text when sidebar is small */
+            margin-left: 10px;
+        }
+        .sidebar:hover .settings span {
+            display: inline; /* Show text when sidebar is expanded */
+        }
+        .sidebar .settings .dropdown-menu {
+            display: none;
+        }
+        .sidebar:hover .settings .dropdown-menu {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <img src="{{ url_for('static', filename='images/checklistlogo.png') }}" alt="CheckIt Logo" class="img-fluid mb-4">
-        <!-- Add List Button -->
-        <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#addListModal">
-            <span class="d-none d-md-inline">Add List</span>
-            <span class="d-inline d-md-none">+</span>
-        </button>
+        <div class="fixed-top">
+            <img src="{{ url_for('static', filename='images/checklistlogo.png') }}" alt="CheckIt Logo" class="img-fluid mb-4">
+            <!-- Add List Button -->
+            <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#addListModal">
+                <span class="d-none d-md-inline">Add List</span>
+                <span class="d-inline d-md-none">+</span>
+            </button>
+        </div>
         <!-- Lists -->
         <ul class="list-group mt-3">
             {% for list in lists %}
-                <li class="list-group-item">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
                     <a href="{{ url_for('view_list', list_id=list.id) }}" class="d-flex align-items-center">
                         <img src="{{ url_for('static', filename='images/checklistlogo.png') }}" alt="List Logo">
                         <span>{{ list.name }}</span>
                     </a>
+                    <form action="{{ url_for('delete_list', list_id=list.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this list?');">
+                        <button type="submit" class="btn btn-sm btn-secondary">Delete</button>
+                    </form>
                 </li>
             {% endfor %}
         </ul>
+        <div class="fixed-bottom settings">
+            <img src="{{ url_for('static', filename='images/settingslogo.png') }}" alt="Settings Logo">
+            <span>Settings</span>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="{{ url_for('logout') }}">Log Out</a>
+                <a class="dropdown-item" href="#">Customize Interface</a>
+            </div>
+        </div>
     </div>
     <div class="content">
         <nav class="navbar navbar-light bg-light">
